@@ -8,7 +8,7 @@ const Loading = () => (
   </div>
 );
 
-// Utility function to format time
+
 const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;

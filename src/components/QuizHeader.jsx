@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-
 const formatTime = (timeInSeconds) => {
   const minutes = Math.floor(timeInSeconds / 60);
   const seconds = timeInSeconds % 60;

@@ -8,13 +8,14 @@ const Navbar = () => {
       </a>
       <div className="space-x-5 flex items-center">
         <ul className="space-x-5 sm:flex hidden">
-          <li className="hover:text-yellow-500"><a href="/">How it works?</a></li>
+          <li className="hover:text-yellow-500"><a href="/">How it works</a></li>
           <li className="hover:text-yellow-500"><a href="/">Features</a></li>
           <li className="hover:text-yellow-500"><a href="/">About us</a></li>
         </ul>
         <button
           className="font-medium px-5 py-1 border border-[#FCC822] rounded text-[#FCC822]"
         >
+          
           Login
         </button>
       </div>
