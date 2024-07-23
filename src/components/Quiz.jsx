@@ -8,13 +8,12 @@ const Loading = () => (
   </div>
 );
 
-
 const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    const formattedTime = `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
-    return formattedTime;
-  };
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  const formattedTime = `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+  return formattedTime;
+};
 
 const Quiz = () => {
   const navigate = useNavigate();
@@ -27,23 +26,23 @@ const Quiz = () => {
   const [timerIntervalId, setTimerIntervalId] = useState(null);
   const [status, setStatus] = useState("");
 
+  // New question state
+  const [newQuestion, setNewQuestion] = useState("");
+  const [newOptions, setNewOptions] = useState(["", ""]);
+  const [newAnswer, setNewAnswer] = useState("");
+
   useEffect(() => {
     fetch("/quiz.json")
       .then((response) => response.json())
       .then((data) => setQuestions(data))
       .catch((error) => console.error("Error fetching quiz data:", error));
 
-    // Set up the timer interval
     const intervalId = setInterval(() => {
-      setTimer((prevTimer) => {
-        // Check if the timer is greater than 0 before decrementing
-        return prevTimer > 0 ? prevTimer - 1 : prevTimer;
-      });
+      setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : prevTimer));
     }, 1000);
-   
+    
     setTimerIntervalId(intervalId);
 
-    
     return () => {
       clearInterval(intervalId);
       if (timer <= 0) {
@@ -53,7 +52,6 @@ const Quiz = () => {
   }, [timer]);
 
   const handleAnswerSelect = (questionId, selectedOption) => {
-    // Handle answer selection logic here
     const updatedAnswers = { ...answers, [questionId]: selectedOption };
     setAnswers(updatedAnswers);
   };
@@ -64,12 +62,10 @@ const Quiz = () => {
 
     clearInterval(timerIntervalId);
 
-    // Calculate score and show result
     setTimeout(() => {
       const quizScore = calculateScore(answers);
       setScore(quizScore);
       const percentage = (quizScore / questions.length) * 100;
-      // Determine the status based on the percentage
       const newStatus = percentage >= 50 ? "Passed" : "Failed";
       setStatus(newStatus);
 
@@ -89,7 +85,6 @@ const Quiz = () => {
     return score;
   };
 
-  // Reset states and reload the page
   const restartQuiz = () => {
     setAnswers({});
     setScore(0);
@@ -97,6 +92,43 @@ const Quiz = () => {
     setLoading(false);
     setTimer(60); 
     navigate("/quiz"); 
+  };
+
+  const handleNewQuestionChange = (e) => {
+    setNewQuestion(e.target.value);
+  };
+
+  const handleNewOptionChange = (index, value) => {
+    const updatedOptions = [...newOptions];
+    updatedOptions[index] = value;
+    setNewOptions(updatedOptions);
+  };
+
+  const handleNewAnswerChange = (e) => {
+    setNewAnswer(e.target.value);
+  };
+
+  const handleAddQuestion = (e) => {
+    e.preventDefault();
+    if (newQuestion && newOptions.length === 2 && newAnswer) {
+      const newQuestionObj = {
+        id: questions.length + 1,
+        question: newQuestion,
+        options: newOptions,
+        answer: newAnswer
+      };
+      setQuestions([...questions, newQuestionObj]);
+      setNewQuestion("");
+      setNewOptions(["", ""]);
+      setNewAnswer("");
+    } else {
+      alert("Please fill in all fields correctly.");
+    }
+  };
+
+  const handleDeleteQuestion = (questionId) => {
+    const updatedQuestions = questions.filter((question) => question.id !== questionId);
+    setQuestions(updatedQuestions);
   };
 
   return (
@@ -131,6 +163,12 @@ const Quiz = () => {
                     </div>
                   ))}
                 </div>
+                <button
+                  onClick={() => handleDeleteQuestion(question.id)}
+                  className="mt-2 bg-red-500 text-white px-4 py-1 rounded"
+                >
+                  Delete Question
+                </button>
               </div>
             ))}
             <button onClick={handleSubmit} className="bg-[#FCC822] px-6 py-2 text-white rounded">
@@ -139,15 +177,15 @@ const Quiz = () => {
           </div>
         </div>
 
-        {/* answer  section*/}
+        {/* answer section */}
         <div className="md:w-[30%] w-full p-4">
           {showResult && (
             <div>
               <h3 className="text-2xl font-medium">Your Score: </h3>
               <div className="h-[220px] w-[220px] mx-auto mt-8 flex flex-col justify-center items-center border-2 rounded-tr-[50%] rounded-bl-[50%]">
-              <h3 className={`text-xl ${status === "Passed" ? "text-green-800" : "text-red-500"}`}>
-              {status}
-            </h3>
+                <h3 className={`text-xl ${status === "Passed" ? "text-green-800" : "text-red-500"}`}>
+                  {status}
+                </h3>
                 <h1 className="text-3xl font-bold my-2">
                   {score * 10}
                   <span className="text-slate-800">/60</span>
@@ -172,9 +210,53 @@ const Quiz = () => {
           {loading && <Loading />}
         </div>
       </div>
+
+      {/* Add Question Form */}
+      <div className="md:w-9/12 w-[90%] mx-auto mt-8">
+        <h2 className="text-2xl font-bold mb-4">Add a New Question</h2>
+        <form onSubmit={handleAddQuestion} className="bg-white p-6 shadow-md rounded">
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">Question</label>
+            <input
+              type="text"
+              value={newQuestion}
+              onChange={handleNewQuestionChange}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          {newOptions.map((option, index) => (
+            <div className="mb-4" key={index}>
+              <label className="block text-gray-700 text-sm font-bold mb-2">Option {index + 1}</label>
+              <input
+                type="text"
+                value={option}
+                onChange={(e) => handleNewOptionChange(index, e.target.value)}
+                className="w-full px-3 py-2 border rounded"
+                required
+              />
+            </div>
+          ))}
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">Answer</label>
+            <input
+              type="text"
+              value={newAnswer}
+              onChange={handleNewAnswerChange}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-[#FCC822] px-6 py-2 text-white rounded"
+          >
+            Add Question
+          </button>
+        </form>
+      </div>
     </section>
   );
 };
-
 
 export default Quiz;
