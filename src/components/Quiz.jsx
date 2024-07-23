@@ -31,6 +31,8 @@ const Quiz = () => {
   const [newOptions, setNewOptions] = useState(["", ""]);
   const [newAnswer, setNewAnswer] = useState("");
 
+  const userRole = localStorage.getItem("role");
+
   useEffect(() => {
     fetch("/quiz.json")
       .then((response) => response.json())
@@ -163,12 +165,14 @@ const Quiz = () => {
                     </div>
                   ))}
                 </div>
-                <button
-                  onClick={() => handleDeleteQuestion(question.id)}
-                  className="mt-2 bg-red-500 text-white px-4 py-1 rounded"
-                >
-                  Delete Question
-                </button>
+                {userRole === "Instructor" && (
+                  <button
+                    onClick={() => handleDeleteQuestion(question.id)}
+                    className="mt-2 bg-red-500 text-white px-4 py-1 rounded"
+                  >
+                    Delete Question
+                  </button>
+                )}
               </div>
             ))}
             <button onClick={handleSubmit} className="bg-[#FCC822] px-6 py-2 text-white rounded">
@@ -212,49 +216,51 @@ const Quiz = () => {
       </div>
 
       {/* Add Question Form */}
-      <div className="md:w-9/12 w-[90%] mx-auto mt-8">
-        <h2 className="text-2xl font-bold mb-4">Add a New Question</h2>
-        <form onSubmit={handleAddQuestion} className="bg-white p-6 shadow-md rounded">
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Question</label>
-            <input
-              type="text"
-              value={newQuestion}
-              onChange={handleNewQuestionChange}
-              className="w-full px-3 py-2 border rounded"
-              required
-            />
-          </div>
-          {newOptions.map((option, index) => (
-            <div className="mb-4" key={index}>
-              <label className="block text-gray-700 text-sm font-bold mb-2">Option {index + 1}</label>
+      {userRole === "Instructor" && (
+        <div className="md:w-9/12 w-[90%] mx-auto mt-8">
+          <h2 className="text-2xl font-bold mb-4">Add a New Question</h2>
+          <form onSubmit={handleAddQuestion} className="bg-white p-6 shadow-md rounded">
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Question</label>
               <input
                 type="text"
-                value={option}
-                onChange={(e) => handleNewOptionChange(index, e.target.value)}
+                value={newQuestion}
+                onChange={handleNewQuestionChange}
                 className="w-full px-3 py-2 border rounded"
                 required
               />
             </div>
-          ))}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Answer</label>
-            <input
-              type="text"
-              value={newAnswer}
-              onChange={handleNewAnswerChange}
-              className="w-full px-3 py-2 border rounded"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-[#FCC822] px-6 py-2 text-white rounded"
-          >
-            Add Question
-          </button>
-        </form>
-      </div>
+            {newOptions.map((option, index) => (
+              <div className="mb-4" key={index}>
+                <label className="block text-gray-700 text-sm font-bold mb-2">Option {index + 1}</label>
+                <input
+                  type="text"
+                  value={option}
+                  onChange={(e) => handleNewOptionChange(index, e.target.value)}
+                  className="w-full px-3 py-2 border rounded"
+                  required
+                />
+              </div>
+            ))}
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Answer</label>
+              <input
+                type="text"
+                value={newAnswer}
+                onChange={handleNewAnswerChange}
+                className="w-full px-3 py-2 border rounded"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-[#FCC822] px-6 py-2 text-white rounded"
+            >
+              Add Question
+            </button>
+          </form>
+        </div>
+      )}
     </section>
   );
 };
