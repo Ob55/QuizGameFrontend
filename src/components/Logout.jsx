@@ -12,11 +12,18 @@ const Logout = () => {
     } else {
       navigate("/login"); // Redirect if not logged in
     }
+
+    // Cleanup function
+    return () => {
+      // Any cleanup if needed
+    };
   }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("authenticated");
-    localStorage.removeItem("currentEmail");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("currentEmail"); // Optional, if you want to clear the email too
     navigate("/login");
   };
 

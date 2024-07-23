@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
@@ -23,42 +23,67 @@ const Login = () => {
 
       if (response.status === 200) {
         localStorage.setItem("authenticated", "true");
+        localStorage.setItem("token",response.data.token);
+        localStorage.setItem("user",response.data.user);
         navigate("/home");
-      } else {
-        setError("Invalid email or password");
-      }
+      } 
     } catch (err) {
-      setError("Invalid email or password");
+      if(err.response){
+        toast.error(err.response.data.message);
+      }
+      else
+      {
+        toast.error(err.message);
+      }
     }
   };
+     
+  
 
   const handleSignup = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+       
 
     try {
+      e.preventDefault();
+      if (password !== confirmPassword) {
+      
+        throw new Error("Password do not match")
+      }
       const response = await axios.post('http://localhost:3000/api/auth/register', {
         email: email,
         password: password,
         role: role
       });
-
-      if (response.status === 201) {
-        localStorage.setItem("email", email);
-        localStorage.setItem("password", password);
-        localStorage.setItem("role", role);
-        localStorage.setItem("authenticated", "true");
-        navigate("/home");
-      } else {
-        toast.error(response.data.message || "Registration failed");
-      }
+     
+      if (response.status === 200) {
+       
+        toast.success('User added successfully');
+        
+      } 
     } catch (err) {
-      toast.error("Registration failed");
+
+      if(err.response){
+        toast.error(err.response.data.message);
+      }
+      else
+      {
+        toast.error(err.message);
+      }
+    
+ 
     }
   };
+  const getLoggedUser = async ()=>{
+     let userExist = await localStorage.getItem('user');
+     if(userExist){
+      navigate("/home");
+     }
+
+  }
+  useEffect(()=>{
+getLoggedUser()
+  },[])
+   
 
   return (
     <div className="flex justify-center items-center h-screen">
