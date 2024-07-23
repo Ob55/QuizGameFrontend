@@ -1,11 +1,14 @@
-
 import { useState } from "react";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Loading from "./Loading";
 
 const Home = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  // Retrieve user role from local storage
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user ? user.role : "Student"; 
 
   const handleStartQuiz = () => {
     setLoading(true);
@@ -39,7 +42,7 @@ const Home = () => {
             type="button"
             disabled={loading}
           >
-            {loading ? "Loading..." : "Start Quiz"}
+            {loading ? "Loading..." : (role === "Instructor" ? "Set Quiz" : "Start Quiz")}
           </button>
 
           <button

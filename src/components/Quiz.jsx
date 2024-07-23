@@ -11,8 +11,7 @@ const Loading = () => (
 const formatTime = (seconds) => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  const formattedTime = `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
-  return formattedTime;
+  return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
 };
 
 const Quiz = () => {
@@ -22,7 +21,7 @@ const Quiz = () => {
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [timer, setTimer] = useState(60); 
+  const [timer, setTimer] = useState(60);
   const [timerIntervalId, setTimerIntervalId] = useState(null);
   const [status, setStatus] = useState("");
 
@@ -42,7 +41,7 @@ const Quiz = () => {
     const intervalId = setInterval(() => {
       setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : prevTimer));
     }, 1000);
-    
+
     setTimerIntervalId(intervalId);
 
     return () => {
@@ -54,8 +53,10 @@ const Quiz = () => {
   }, [timer]);
 
   const handleAnswerSelect = (questionId, selectedOption) => {
-    const updatedAnswers = { ...answers, [questionId]: selectedOption };
-    setAnswers(updatedAnswers);
+    setAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [questionId]: selectedOption,
+    }));
   };
 
   const handleSubmit = () => {
@@ -68,9 +69,7 @@ const Quiz = () => {
       const quizScore = calculateScore(answers);
       setScore(quizScore);
       const percentage = (quizScore / questions.length) * 100;
-      const newStatus = percentage >= 50 ? "Passed" : "Failed";
-      setStatus(newStatus);
-
+      setStatus(percentage >= 50 ? "Passed" : "Failed");
       setShowResult(true);
       setLoading(false);
     }, 5000);
@@ -78,13 +77,9 @@ const Quiz = () => {
 
   const calculateScore = (userAnswers) => {
     const correctAnswers = questions.map((question) => question.answer);
-    let score = 0;
-    for (const questionId in userAnswers) {
-      if (userAnswers[questionId] === correctAnswers[questionId - 1]) {
-        score++;
-      }
-    }
-    return score;
+    return Object.keys(userAnswers).reduce((score, questionId) => {
+      return userAnswers[questionId] === correctAnswers[questionId - 1] ? score + 1 : score;
+    }, 0);
   };
 
   const restartQuiz = () => {
@@ -92,8 +87,8 @@ const Quiz = () => {
     setScore(0);
     setShowResult(false);
     setLoading(false);
-    setTimer(60); 
-    navigate("/quiz"); 
+    setTimer(60);
+    navigate("/quiz");
   };
 
   const handleNewQuestionChange = (e) => {
@@ -110,19 +105,29 @@ const Quiz = () => {
     setNewAnswer(e.target.value);
   };
 
-  const handleAddQuestion = (e) => {
+  const handleAddQuestion = async (e) => {
     e.preventDefault();
     if (newQuestion && newOptions.length === 2 && newAnswer) {
       const newQuestionObj = {
         id: questions.length + 1,
         question: newQuestion,
         options: newOptions,
-        answer: newAnswer
+        answer: newAnswer,
       };
-      setQuestions([...questions, newQuestionObj]);
-      setNewQuestion("");
-      setNewOptions(["", ""]);
-      setNewAnswer("");
+      try {
+        // Assuming you have an API endpoint to handle adding questions
+        await fetch('/api/quiz/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newQuestionObj),
+        });
+        setQuestions((prevQuestions) => [...prevQuestions, newQuestionObj]);
+        setNewQuestion("");
+        setNewOptions(["", ""]);
+        setNewAnswer("");
+      } catch (error) {
+        console.error("Error adding question:", error);
+      }
     } else {
       alert("Please fill in all fields correctly.");
     }
@@ -143,13 +148,13 @@ const Quiz = () => {
             {questions.map((question, index) => (
               <div
                 key={question.id}
-                className="m-3 py-3 px-4 shadow-sm border border-gray-200 rounded "
+                className="m-3 py-3 px-4 shadow-sm border border-gray-200 rounded"
               >
                 <p className="flex items-center rounded text-xs p-2 cursor-pointer">
                   <span className="h-8 w-8 bg-[#FCC822] rounded-full flex justify-center items-center text-green-800 mr-3">
                     {index + 1}
                   </span>
-                  <p className="">{question.question}</p>
+                  <p>{question.question}</p>
                 </p>
                 <div className="grid grid-cols-2 gap-4 mt-5">
                   {question.options.map((option, index) => (

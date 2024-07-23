@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
@@ -18,77 +18,53 @@ const Login = () => {
     try {
       const response = await axios.post('http://localhost:3000/api/auth/login', {
         email: email,
-        password: password
+        password: password,
       });
 
       if (response.status === 200) {
         localStorage.setItem("authenticated", "true");
-        localStorage.setItem("token",response.data.token);
-        localStorage.setItem("user",response.data.user);
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify({ ...response.data.user, role })); // Store role in user object
         navigate("/home");
-      } 
-    } catch (err) {
-      if(err.response){
-        toast.error(err.response.data.message);
       }
-      else
-      {
+    } catch (err) {
+      if (err.response) {
+        toast.error(err.response.data.message);
+      } else {
         toast.error(err.message);
       }
     }
   };
-     
-  
 
   const handleSignup = async (e) => {
-       
-
+    e.preventDefault();
     try {
-      e.preventDefault();
       if (password !== confirmPassword) {
-      
-        throw new Error("Password do not match")
+        throw new Error("Passwords do not match");
       }
       const response = await axios.post('http://localhost:3000/api/auth/register', {
         email: email,
         password: password,
         role: role
       });
-     
-      if (response.status === 200) {
-       
-        toast.success('User added successfully');
-        
-      } 
-    } catch (err) {
 
-      if(err.response){
-        toast.error(err.response.data.message);
+      if (response.status === 200) {
+        toast.success('User added successfully');
+        setIsLogin(true); // Switch to login view after successful signup
       }
-      else
-      {
+    } catch (err) {
+      if (err.response) {
+        toast.error(err.response.data.message);
+      } else {
         toast.error(err.message);
       }
-    
- 
     }
   };
-  const getLoggedUser = async ()=>{
-     let userExist = await localStorage.getItem('user');
-     if(userExist){
-      navigate("/home");
-     }
-
-  }
-  useEffect(()=>{
-getLoggedUser()
-  },[])
-   
 
   return (
     <div className="flex justify-center items-center h-screen">
       <form className="w-full max-w-md bg-white p-8 rounded shadow-md" onSubmit={isLogin ? handleLogin : handleSignup}>
-        <h2 className="text-2xl font-bold mb-6">{isLogin ? "Login in" : "Sign up"}</h2>
+        <h2 className="text-2xl font-bold mb-6">{isLogin ? "Login" : "Sign Up"}</h2>
         {error && <p className="text-red-500">{error}</p>}
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
@@ -110,6 +86,18 @@ getLoggedUser()
             required
           />
         </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">Role</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            required
+          >
+            <option value="Student">Student</option>
+            <option value="Instructor">Instructor</option>
+          </select>
+        </div>
         {!isLogin && (
           <>
             <div className="mb-4">
@@ -121,18 +109,6 @@ getLoggedUser()
                 className="w-full px-3 py-2 border rounded"
                 required
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Role</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full px-3 py-2 border rounded"
-                required
-              >
-                <option value="Student">Student</option>
-                <option value="Instructor">Instructor</option>
-              </select>
             </div>
           </>
         )}
