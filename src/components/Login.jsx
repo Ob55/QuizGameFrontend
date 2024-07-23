@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,36 +13,57 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const storedEmail = localStorage.getItem("email");
-    const storedPassword = localStorage.getItem("password");
+    try {
+      const response = await axios.post('http://localhost:3000/api/auth/login', {
+        email: email,
+        password: password
+      });
 
-    if (email === storedEmail && password === storedPassword) {
-      localStorage.setItem("authenticated", "true");
-      navigate("/home");
-    } else {
+      if (response.status === 200) {
+        localStorage.setItem("authenticated", "true");
+        navigate("/home");
+      } else {
+        setError("Invalid email or password");
+      }
+    } catch (err) {
       setError("Invalid email or password");
     }
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
-    localStorage.setItem("email", email);
-    localStorage.setItem("password", password);
-    localStorage.setItem("role", role);
-    localStorage.setItem("authenticated", "true");
-    navigate("/home");
+
+    try {
+      const response = await axios.post('http://localhost:3000/api/auth/register', {
+        email: email,
+        password: password,
+        role: role
+      });
+
+      if (response.status === 201) {
+        localStorage.setItem("email", email);
+        localStorage.setItem("password", password);
+        localStorage.setItem("role", role);
+        localStorage.setItem("authenticated", "true");
+        navigate("/home");
+      } else {
+        toast.error(response.data.message || "Registration failed");
+      }
+    } catch (err) {
+      toast.error("Registration failed");
+    }
   };
 
   return (
     <div className="flex justify-center items-center h-screen">
       <form className="w-full max-w-md bg-white p-8 rounded shadow-md" onSubmit={isLogin ? handleLogin : handleSignup}>
-        <h2 className="text-2xl font-bold mb-6">{isLogin ? "Logging in to Quizz" : "Signing up to Quizz"}</h2>
+        <h2 className="text-2xl font-bold mb-6">{isLogin ? "Login in" : "Sign up"}</h2>
         {error && <p className="text-red-500">{error}</p>}
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
@@ -91,7 +115,7 @@ const Login = () => {
           type="submit"
           className="bg-[#FCC822] px-4 py-2 text-white rounded w-full mb-4"
         >
-          {isLogin ? "Login" : "Sign Up"}
+          {isLogin ? "Sign In" : "Sign Up"}
         </button>
         <p className="text-center">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
@@ -104,6 +128,7 @@ const Login = () => {
           </button>
         </p>
       </form>
+      <ToastContainer />
     </div>
   );
 };
