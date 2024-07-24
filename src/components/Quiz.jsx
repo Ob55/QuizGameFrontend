@@ -17,6 +17,7 @@ const formatTime = (seconds) => {
 
 const Quiz = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null)
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [showResult, setShowResult] = useState(false);
@@ -31,9 +32,9 @@ const Quiz = () => {
   const [newOptions, setNewOptions] = useState(["", ""]);
   const [newAnswer, setNewAnswer] = useState("");
 
-  const userRole = localStorage.getItem("role");
 
   useEffect(() => {
+    getCurrentUser()
     fetch("/quiz.json")
       .then((response) => response.json())
       .then((data) => setQuestions(data))
@@ -132,135 +133,159 @@ const Quiz = () => {
     const updatedQuestions = questions.filter((question) => question.id !== questionId);
     setQuestions(updatedQuestions);
   };
+  const getCurrentUser = async () => {
+    const user = localStorage.getItem('user');
+    if (user !== null) {
+      const parsedUser = JSON.parse(user);
+      setUser(parsedUser)
+    }
+  }
 
+ 
   return (
     <section>
-      <QuizHeader timer={timer} />
-      <div className="md:w-9/12 w-[90%] flex md:flex-row flex-col mx-auto">
-        {/* question section */}
-        <div className="md:w-[70%] w-full">
-          <div>
-            {questions.map((question, index) => (
-              <div
-                key={question.id}
-                className="m-3 py-3 px-4 shadow-sm border border-gray-200 rounded "
-              >
-                <p className="flex items-center rounded text-xs p-2 cursor-pointer">
-                  <span className="h-8 w-8 bg-[#FCC822] rounded-full flex justify-center items-center text-green-800 mr-3">
-                    {index + 1}
-                  </span>
-                  <p className="">{question.question}</p>
-                </p>
-                <div className="grid grid-cols-2 gap-4 mt-5">
-                  {question.options.map((option, index) => (
-                    <div
-                      className={`border border-gray-200 rounded text-xs p-2 cursor-pointer ${
-                        answers[question.id] === option ? "bg-gray-300" : ""
-                      }`}
-                      key={option}
-                      onClick={() => handleAnswerSelect(question.id, option)}
-                    >
-                      <p className="text-[10px] mb-1">Option {index + 1}</p>
-                      <p>{option}</p>
-                    </div>
-                  ))}
-                </div>
-                {userRole === "Instructor" && (
-                  <button
-                    onClick={() => handleDeleteQuestion(question.id)}
-                    className="mt-2 bg-red-500 text-white px-4 py-1 rounded"
+      
+     
+      {
+        user !== null && <>
+          {
+            user.role === 'Student' ?
+            <>
+            <QuizHeader timer={timer} />
+            <div className="md:w-9/12 w-[90%] flex md:flex-row flex-col mx-auto">
+            {/* question section */}
+            <div className="md:w-[70%] w-full">
+              <div>
+                {questions.map((question, index) => (
+                  <div
+                    key={question.id}
+                    className="m-3 py-3 px-4 shadow-sm border border-gray-200 rounded "
                   >
-                    Delete Question
+                    <p className="flex items-center rounded text-xs p-2 cursor-pointer">
+                      <span className="h-8 w-8 bg-[#FCC822] rounded-full flex justify-center items-center text-green-800 mr-3">
+                        {index + 1}
+                      </span>
+                      <p className="">{question.question}</p>
+                    </p>
+                    <div className="grid grid-cols-2 gap-4 mt-5">
+                      {question.options.map((option, index) => (
+                        <div
+                          className={`border border-gray-200 rounded text-xs p-2 cursor-pointer ${
+                            answers[question.id] === option ? "bg-gray-300" : ""
+                          }`}
+                          key={option}
+                          onClick={() => handleAnswerSelect(question.id, option)}
+                        >
+                          <p className="text-[10px] mb-1">Option {index + 1}</p>
+                          <p>{option}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {/* {userRole === "Instructor" && (
+                      <button
+                        onClick={() => handleDeleteQuestion(question.id)}
+                        className="mt-2 bg-red-500 text-white px-4 py-1 rounded"
+                      >
+                        Delete Question
+                      </button>
+                    )} */}
+                  </div>
+                ))}
+                <button onClick={handleSubmit} className="bg-[#FCC822] px-6 py-2 text-white rounded">
+                  Submit Quiz
+                </button>
+              </div>
+            </div>
+    
+            {/* answer section */}
+            <div className="md:w-[30%] w-full p-4">
+              {showResult && (
+                <div>
+                  <h3 className="text-2xl font-medium">Your Score: </h3>
+                  <div className="h-[220px] w-[220px] mx-auto mt-8 flex flex-col justify-center items-center border-2 rounded-tr-[50%] rounded-bl-[50%]">
+                    <h3 className={`text-xl ${status === "Passed" ? "text-green-800" : "text-red-500"}`}>
+                      {status}
+                    </h3>
+                    <h1 className="text-3xl font-bold my-2">
+                      {score * 10}
+                      <span className="text-slate-800">/60</span>
+                    </h1>
+                    <p className="text-sm flex justify-center items-center gap-2">
+                      Total Time:{" "}
+                      <span className="text-xl text-orange-500">
+                        {formatTime(60 - timer)}
+                        <span className="text-xs">sec</span>
+                      </span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={restartQuiz}
+                    className="bg-[#FCC822] text-white w-full py-2 rounded mt-16"
+                  >
+                    Restart
                   </button>
-                )}
-              </div>
-            ))}
-            <button onClick={handleSubmit} className="bg-[#FCC822] px-6 py-2 text-white rounded">
-              Submit Quiz
-            </button>
+                </div>
+              )}
+    
+              {loading && <Loading />}
+            </div>
           </div>
-        </div>
+</>
 
-        {/* answer section */}
-        <div className="md:w-[30%] w-full p-4">
-          {showResult && (
-            <div>
-              <h3 className="text-2xl font-medium">Your Score: </h3>
-              <div className="h-[220px] w-[220px] mx-auto mt-8 flex flex-col justify-center items-center border-2 rounded-tr-[50%] rounded-bl-[50%]">
-                <h3 className={`text-xl ${status === "Passed" ? "text-green-800" : "text-red-500"}`}>
-                  {status}
-                </h3>
-                <h1 className="text-3xl font-bold my-2">
-                  {score * 10}
-                  <span className="text-slate-800">/60</span>
-                </h1>
-                <p className="text-sm flex justify-center items-center gap-2">
-                  Total Time:{" "}
-                  <span className="text-xl text-orange-500">
-                    {formatTime(60 - timer)}
-                    <span className="text-xs">sec</span>
-                  </span>
-                </p>
-              </div>
-              <button
-                onClick={restartQuiz}
-                className="bg-[#FCC822] text-white w-full py-2 rounded mt-16"
-              >
-                Restart
-              </button>
-            </div>
-          )}
+            :
 
-          {loading && <Loading />}
+    <div className="md:w-9/12 w-[90%] mx-auto mt-8">
+      <h2 className="text-2xl font-bold mb-4">Add a New Question</h2>
+      <form onSubmit={handleAddQuestion} className="bg-white p-6 shadow-md rounded">
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">Question</label>
+          <input
+            type="text"
+            value={newQuestion}
+            onChange={handleNewQuestionChange}
+            className="w-full px-3 py-2 border rounded"
+            required
+          />
         </div>
-      </div>
+        {newOptions.map((option, index) => (
+          <div className="mb-4" key={index}>
+            <label className="block text-gray-700 text-sm font-bold mb-2">Option {index + 1}</label>
+            <input
+              type="text"
+              value={option}
+              onChange={(e) => handleNewOptionChange(index, e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+        ))}
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">Answer</label>
+          <input
+            type="text"
+            value={newAnswer}
+            onChange={handleNewAnswerChange}
+            className="w-full px-3 py-2 border rounded"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className="bg-[#FCC822] px-6 py-2 text-white rounded"
+        >
+          Add Question
+        </button>
+      </form>
+    </div>
+  
+          }
+        
+        
+        </>
+      }
+     
 
-      {/* Add Question Form */}
-      {userRole === "Instructor" && (
-        <div className="md:w-9/12 w-[90%] mx-auto mt-8">
-          <h2 className="text-2xl font-bold mb-4">Add a New Question</h2>
-          <form onSubmit={handleAddQuestion} className="bg-white p-6 shadow-md rounded">
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Question</label>
-              <input
-                type="text"
-                value={newQuestion}
-                onChange={handleNewQuestionChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
-            </div>
-            {newOptions.map((option, index) => (
-              <div className="mb-4" key={index}>
-                <label className="block text-gray-700 text-sm font-bold mb-2">Option {index + 1}</label>
-                <input
-                  type="text"
-                  value={option}
-                  onChange={(e) => handleNewOptionChange(index, e.target.value)}
-                  className="w-full px-3 py-2 border rounded"
-                  required
-                />
-              </div>
-            ))}
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Answer</label>
-              <input
-                type="text"
-                value={newAnswer}
-                onChange={handleNewAnswerChange}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-[#FCC822] px-6 py-2 text-white rounded"
-            >
-              Add Question
-            </button>
-          </form>
-        </div>
-      )}
+    
     </section>
   );
 };

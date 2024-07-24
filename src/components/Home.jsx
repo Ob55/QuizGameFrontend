@@ -1,14 +1,12 @@
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "./Loading";
 
 const Home = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(false);
 
-  // Retrieve user role from local storage
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user ? user.role : "Student"; 
 
   const handleStartQuiz = () => {
     setLoading(true);
@@ -18,6 +16,18 @@ const Home = () => {
       setLoading(false);
     }, 3000);
   };
+  const getCurrentUser = async () => {
+    const user = localStorage.getItem('user');
+    console.log(user)
+    if (user !== null) {
+      const parsedUser = JSON.parse(user);
+      setUser(parsedUser)
+    }
+  }
+
+  useEffect(() => {
+    getCurrentUser()
+  }, [])
 
   return (
     <section className="lg:w-9/12 md:w-[90%] w-[95%] mx-auto mt-12 flex flex-col md:flex-row-reverse justify-between items-center" id="rulesContainer">
@@ -29,10 +39,35 @@ const Home = () => {
 
       <div className="md:w-1/2 w-full">
         <h1 className="my-8 lg:text-4xl text-3xl md:w-4/6 font-medium text-[#333] lg:leading-normal leading-normal mb-3">
-          Learn new concepts for each question
+          {
+            user !== null && <>
+              {
+                user.role === 'Student' ?
+                  `Learn new concepts for each question`
+                  :
+
+                  `Fostering Learning Through Thoughtful Questioning`
+              }
+
+            </>
+
+          }
+
         </h1>
         <p className="border-l-4 pl-2 py-2 mb-6 text-gray-500">
-          We help you prepare for exams and quizzes{" "}
+        {
+            user !== null && <>
+              {
+                user.role === 'Student' ?
+                  `We help you prepare for exams and quizzes`
+                  :
+
+                  `Set each question as an opportunity for students to learn new concepts, encouraging them to deepen their understanding and grow.`
+              }
+
+            </>
+
+          }
         </p>
         <div className="flex items-center">
           <button
@@ -42,10 +77,18 @@ const Home = () => {
             type="button"
             disabled={loading}
           >
-            {loading ? "Loading..." : (role === "Instructor" ? "Set Quiz" : "Start Quiz")}
+            {/* {loading ? "Loading..." : (user.role === "Instructor" ? "Set Quiz" : "Start Quiz")} */}
+            {
+              user !== null && 
+              <>
+                {
+                  user.role === 'Instructor' ? `Set Quiz` : `Start Quiz`
+                }
+              </>
+            }
           </button>
 
-          <button
+          {/* <button
             className="px-6 py-2 text-[#FCC822] hover:bg-[#FCC822] hover:text-white rounded inline-flex ml-3 transition-all duration-300"
             type="button"
           >
@@ -60,7 +103,7 @@ const Home = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
             know more
-          </button>
+          </button> */}
         </div>
       </div>
     </section>

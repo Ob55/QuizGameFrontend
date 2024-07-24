@@ -9,7 +9,7 @@ import {
 import Home from './components/Home.jsx';
 import Quiz from './components/Quiz.jsx';
 import Login from './components/Login.jsx'; // Import the Login component
-
+import Register from './components/Register.jsx';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -18,6 +18,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <Login />, // Set Login as the default route or configure as needed
+      },
+      {
+        path: "/register",
+        element: <Register />, // Set Login as the default route or configure as needed
       },
       {
         path: "/home",

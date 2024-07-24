@@ -4,11 +4,10 @@ import Navbar from './components/Navbar';
 
 function App() {
   const location = useLocation();
-  const hideNavbar = location.pathname === "/" || location.pathname === "/login" || location.pathname === "/signup";
-
+ 
   return (
     <>
-      {!hideNavbar && <Navbar />}
+       <Navbar />
       <Outlet />
     </>
   );

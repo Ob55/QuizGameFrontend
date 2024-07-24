@@ -19,11 +19,8 @@ const Logout = () => {
     };
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("authenticated");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("currentEmail"); // Optional, if you want to clear the email too
+  const handleLogout = async() => {
+    await localStorage.clear()
     navigate("/login");
   };
 
@@ -33,7 +30,7 @@ const Logout = () => {
         <h2 className="text-2xl font-bold mb-6">Logged in as:</h2>
         <p className="mb-4">{email}</p>
         <button
-          onClick={handleLogout}
+          onClick={()=>{handleLogout()}}
           className="bg-[#FCC822] px-4 py-2 text-white rounded"
         >
           Logout
